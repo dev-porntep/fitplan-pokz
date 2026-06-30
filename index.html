@@ -196,6 +196,61 @@
   <footer class="pgfoot">ระยะเวลาเป็นค่าประมาณ ขึ้นกับพันธุกรรม วินัยอาหาร และการพักผ่อน · ความสม่ำเสมอสำคัญที่สุด</footer>
 </div>
 
+<!-- ═══════════════ PAGE 7: ASK AI ═══════════════ -->
+<div class="page" id="pg-ai">
+  <div class="hdr">
+    <div>
+      <h1>🤖 FitAI Coach</h1>
+      <div class="sub">ถามตอบความรู้ สุขภาพ ออกกำลังกาย และโภชนาการ</div>
+    </div>
+  </div>
+
+  <!-- API Key Box -->
+  <div class="ai-key-card" id="ai-key-card">
+    <div style="font-weight: 700; font-size: 13.5px; margin-bottom: 6px;">🔑 ตั้งค่า Gemini API Key</div>
+    <div style="font-size: 11px; color: var(--muted); margin-bottom: 10px; line-height: 1.45;">
+      คุยฟรีโดยใช้ API Key ของคุณเอง! หากยังไม่มีคีย์ สามารถสมัครฟรีได้ที่ 
+      <a href="https://aistudio.google.com/" target="_blank" style="color: var(--green); text-decoration: underline;">Google AI Studio ↗</a>
+    </div>
+    <div style="display: flex; gap: 8px;">
+      <input type="password" id="ai-key-input" placeholder="AIzaSy..." 
+             style="flex: 1; background: var(--card2); border: 1px solid var(--border); color: var(--text); padding: 9px 12px; border-radius: 8px; font-size: 13.5px; font-family: monospace; outline: none;"/>
+      <button class="save-btn" id="ai-key-save-btn" style="margin-top: 0; width: auto; padding: 0 16px; height: 38px;">บันทึก</button>
+    </div>
+  </div>
+
+  <!-- Chat Log Zone -->
+  <div class="chat-wrapper">
+    <div class="chat-log" id="chat-log">
+      <!-- Welcome message -->
+      <div class="chat-msg chat-ai">
+        <div class="msg-bubble">
+          สวัสดีครับ! ผมคือ <b>FitAI Coach</b> ส่วนตัวของคุณ ยินดีที่ได้คุยกันครับ 💪<br><br>
+          ผมสามารถช่วยตอบคำถามเรื่องการออกกำลังกาย โภชนาการ แนะนำการเลือกซื้อ หรือช่วยปรับตารางออกกำลังกายของคุณได้เต็มที่เลยครับ 
+          อยากให้ผมช่วยเหลือเรื่องอะไรในวันนี้ดีครับ?
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Prompts -->
+  <div class="quick-prompts-title">💡 คำถามแนะนำ:</div>
+  <div class="quick-prompts" id="quick-prompts">
+    <button class="qp-btn" onclick="sendQuickPrompt('แนะนำเมนูอาหารโปรตีนสูง สำหรับลดไขมัน งบประหยัดหน่อย')">🍗 เมนูโปรตีนสูงงบประหยัด</button>
+    <button class="qp-btn" onclick="sendQuickPrompt('รู้สึกปวดข้อศอกเวลาดึงข้อ มีท่าอื่นแทนหรือวิธีเซฟข้อศอกไหม?')">🩹 ปวดข้อศอกทำไงดี</button>
+    <button class="qp-btn" onclick="sendQuickPrompt('ถ้าไม่มีลู่วิ่ง คาร์ดิโอท่าไหนทดแทนเดินชัน (Incline Walk) ได้บ้าง?')">🏃 คาร์ดิโอที่บ้าน</button>
+    <button class="qp-btn" onclick="sendQuickPrompt('หลักการ Progressive Overload สำหรับดัมเบล ต้องทำยังไงให้ได้ผลดี?')">📈 วิธีเพิ่มแรงต้านเวท</button>
+  </div>
+
+  <!-- Input Zone -->
+  <div class="chat-input-area">
+    <input type="text" id="chat-input" placeholder="พิมพ์ถาม FitAI ที่นี่..." autocomplete="off"/>
+    <button id="chat-send-btn">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+    </button>
+  </div>
+</div>
+
 </div><!-- /#app -->
 
 <!-- ── Bottom nav ── -->
@@ -223,6 +278,10 @@
   <button class="nav-btn" data-pg="pg-goal" onclick="nav(this)">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/></svg>
     เป้าหุ่น
+  </button>
+  <button class="nav-btn" data-pg="pg-ai" onclick="nav(this)">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+    ถาม AI
   </button>
 </nav>
 

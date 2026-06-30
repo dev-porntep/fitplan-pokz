@@ -25,6 +25,12 @@ function initDOMCache() {
     bfScale: document.getElementById('bf-scale'),
     roadmapList: document.getElementById('roadmap-list'),
     weekCard: document.getElementById('week-card'),
+    aiKeyCard: document.getElementById('ai-key-card'),
+    aiKeyInput: document.getElementById('ai-key-input'),
+    aiKeySaveBtn: document.getElementById('ai-key-save-btn'),
+    chatLog: document.getElementById('chat-log'),
+    chatInput: document.getElementById('chat-input'),
+    chatSendBtn: document.getElementById('chat-send-btn'),
   };
 }
 
@@ -446,6 +452,14 @@ document.addEventListener('DOMContentLoaded', () => {
   renderMonthContent();
   updateOverall();
 
+  // ── Gemini Chat Event Handlers ──
+  if(DOM.aiKeySaveBtn) DOM.aiKeySaveBtn.onclick = saveGeminiKey;
+  if(DOM.chatSendBtn) DOM.chatSendBtn.onclick = sendAIChat;
+  if(DOM.chatInput) {
+    DOM.chatInput.onkeydown = e => { if(e.key === 'Enter') sendAIChat(); };
+  }
+  initAIChat();
+
   // ── Warn if opened via file:// (YouTube embeds blocked) ──
   if(location.protocol==='file:'){
     const banner=document.createElement('div');
@@ -460,3 +474,163 @@ document.addEventListener('DOMContentLoaded', () => {
     document.body.appendChild(banner);
   }
 });
+
+// ── Gemini API Integration (FitAI Coach) ──
+let geminiKey = localStorage.getItem('fitplan_gemini_key') || '';
+
+function initAIChat(){
+  if(DOM.aiKeyInput) DOM.aiKeyInput.value = geminiKey;
+  if(geminiKey) {
+    if(DOM.aiKeyCard) DOM.aiKeyCard.style.display = 'none';
+  } else {
+    if(DOM.aiKeyCard) DOM.aiKeyCard.style.display = 'block';
+  }
+}
+
+function saveGeminiKey(){
+  if(!DOM.aiKeyInput) return;
+  const val = DOM.aiKeyInput.value.trim();
+  if(!val) {
+    alert('กรุณากรอก API Key ก่อนบันทึกครับ');
+    return;
+  }
+  geminiKey = val;
+  localStorage.setItem('fitplan_gemini_key', geminiKey);
+  initAIChat();
+  appendMsg('บันทึก API Key สำเร็จ! ระบบพร้อมให้บริการแล้วครับ 🤖', 'ai');
+}
+
+function appendMsg(text, sender) {
+  if(!DOM.chatLog) return;
+  const msgDiv = document.createElement('div');
+  msgDiv.className = `chat-msg chat-${sender}`;
+  
+  const bubble = document.createElement('div');
+  bubble.className = 'msg-bubble';
+  bubble.innerHTML = sender === 'ai' ? md2html(text) : text.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  
+  msgDiv.appendChild(bubble);
+  DOM.chatLog.appendChild(msgDiv);
+  
+  // Auto scroll to bottom
+  DOM.chatLog.scrollTop = DOM.chatLog.scrollHeight;
+}
+
+function md2html(md) {
+  let html = md
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+
+  // Bold (**text**)
+  html = html.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+  html = html.replace(/\*(.*?)\*/g, '<i>$1</i>');
+
+  // Bullet points
+  const lines = html.split('\n');
+  let inList = false;
+  const processedLines = lines.map(line => {
+    const trimmed = line.trim();
+    if(trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
+      const content = trimmed.substring(2);
+      if(!inList) {
+        inList = true;
+        return '<ul><li>' + content + '</li>';
+      }
+      return '<li>' + content + '</li>';
+    } else {
+      if(inList) {
+        inList = false;
+        return '</ul>' + line;
+      }
+      return line;
+    }
+  });
+  if(inList) {
+    processedLines.push('</ul>');
+  }
+  
+  return processedLines.join('<br>').replace(/<\/ul><br>/g, '</ul>').replace(/<br><ul>/g, '<ul>');
+}
+
+let typingDiv = null;
+function showTypingIndicator(){
+  if(!DOM.chatLog || typingDiv) return;
+  typingDiv = document.createElement('div');
+  typingDiv.className = 'chat-msg chat-ai';
+  typingDiv.innerHTML = `
+    <div class="msg-bubble" style="padding: 12px 16px;">
+      <div class="typing-indicator">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+    </div>`;
+  DOM.chatLog.appendChild(typingDiv);
+  DOM.chatLog.scrollTop = DOM.chatLog.scrollHeight;
+}
+
+function removeTypingIndicator(){
+  if(typingDiv) {
+    typingDiv.remove();
+    typingDiv = null;
+  }
+}
+
+async function sendAIChat(){
+  if(!DOM.chatInput) return;
+  const prompt = DOM.chatInput.value.trim();
+  if(!prompt) return;
+  
+  DOM.chatInput.value = '';
+  appendMsg(prompt, 'user');
+  
+  await callGeminiAPI(prompt);
+}
+
+async function sendQuickPrompt(promptText){
+  appendMsg(promptText, 'user');
+  await callGeminiAPI(promptText);
+}
+
+async function callGeminiAPI(prompt) {
+  if(!geminiKey) {
+    appendMsg('⚠️ กรุณากรอกและบันทึก Gemini API Key ในแถบด้านบนก่อนเริ่มใช้งานครับ เพื่อความปลอดภัยคีย์นี้จะบันทึกในเครื่องของคุณเท่านั้น', 'ai');
+    if(DOM.aiKeyCard) DOM.aiKeyCard.style.display = 'block';
+    return;
+  }
+  
+  showTypingIndicator();
+  
+  try {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        systemInstruction: {
+          parts: [{ text: 'คุณคือ FitAI Coach ผู้ช่วยและโค้ชสุขภาพส่วนตัวอัจฉริยะที่อยู่ในแอป FitPlan ออกแบบมาเพื่อให้คำแนะนำการออกกำลังกาย โภชนาการ การลดไขมัน และดูแลตารางการเทรนอย่างถูกหลักวิทยาศาสตร์การกีฬา มีความเป็นมิตร สุภาพ เป็นกันเอง ตอบคำถามเป็นภาษาไทยให้กระชับ เข้าใจง่าย และให้พลังบวกในการพัฒนาตนเองเสมอ' }]
+        }
+      })
+    });
+    
+    removeTypingIndicator();
+    
+    if(!response.ok) {
+      const errData = await response.json().catch(() => ({}));
+      const errReason = errData.error?.message || response.statusText;
+      appendMsg(`❌ เกิดข้อผิดพลาดจาก API: ${errReason} (กรุณาตรวจสอบว่า API Key ถูกต้องและใช้งานได้หรือไม่)`, 'ai');
+      return;
+    }
+    
+    const data = await response.json();
+    const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || 'ขออภัยครับ ผมไม่ได้รับคำตอบกลับมา ลองถามใหม่อีกครั้งนะครับ';
+    appendMsg(reply, 'ai');
+    
+  } catch (error) {
+    removeTypingIndicator();
+    appendMsg(`❌ ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ Gemini ได้: ${error.message}`, 'ai');
+  }
+}
