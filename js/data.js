@@ -1,6 +1,6 @@
 // ── YT and Search IDs ──
 const YT = {
-  goblet_squat:'X6wzkNs0YiI', rdl:'QbbURJEUALw', bench_press:'D36UNbcwK9s',
+  goblet_squat:'X6wzkNs0YiI', rdl:'QbbURJEUALw', bench_press:'mTaiQemkEpU',
   row:'h3gCuCs7pks', plank:'v3V6iyQfKzY', lunge:'_Zc5kyQ5S_A',
   sumo_squat:'bRCjBCtBGIo', glute_bridge:'KBEF9XsiJ-w', russian_twist:'t2Npojub3Es',
   calf_raise:'OscsK8RMelQ', shoulder_press:'k6tzKisR3NY', lateral_raise:'2pb0rbxV62U',
@@ -11,7 +11,7 @@ const YT = {
 
 const YT_SEARCH = {
   goblet_squat:'DeltaBolic goblet squat shorts', rdl:'DeltaBolic romanian deadlift shorts',
-  bench_press:'DeltaBolic bench press shorts', row:'DeltaBolic dumbbell row shorts',
+  bench_press:'DeltaBolic dumbbell chest press shorts', row:'DeltaBolic dumbbell row shorts',
   plank:'DeltaBolic plank shorts', lunge:'DeltaBolic lunges shorts',
   sumo_squat:'DeltaBolic sumo squat shorts', glute_bridge:'DeltaBolic glute bridge shorts',
   russian_twist:'DeltaBolic russian twist shorts', calf_raise:'DeltaBolic calf raise shorts',
