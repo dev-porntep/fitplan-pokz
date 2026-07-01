@@ -114,7 +114,7 @@ function startTimer(ex){
 }
 function step(){
   T.remain--;
-  if(T.phase==='work'&&T.remain>0&&T.remain<=3)beep(`c${T.remain}`);
+  if(T.remain>0&&T.remain<=3)beep(`c${T.remain}`);
   if(T.remain<=0){beep(T.phase);advance();}
   tickUI();
 }
