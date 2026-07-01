@@ -16,6 +16,7 @@ function initDOMCache() {
     daytabs: document.getElementById('daytabs'),
     daysum: document.getElementById('daysum'),
     exlist: document.getElementById('exlist'),
+    mealDaytabs: document.getElementById('meal-daytabs'),
     mealList: document.getElementById('meal-list'),
     monthContent: document.getElementById('month-content'),
     wkRows: document.getElementById('wk-rows'),
@@ -50,6 +51,39 @@ function nav(btn){
   }
   activeNavBtn = btn;
   DOM.app?.scrollTo(0,0);
+}
+
+// ── Render meal page ──
+let curMealDay='mon';
+function buildMealTabs(){
+  if(!DOM.mealDaytabs) return;
+  DOM.mealDaytabs.innerHTML=Object.entries(MEAL_PLANS).map(([k,d])=>
+    `<button class="dtab${k===curMealDay?' active':''}" id="mdtab-${k}" onclick="switchMealDay('${k}')">
+      ${d.label}<small>${d.sub}</small>
+    </button>`).join('');
+}
+function switchMealDay(k){
+  document.getElementById(`mdtab-${curMealDay}`)?.classList.remove('active');
+  document.getElementById(`mdtab-${k}`)?.classList.add('active');
+  curMealDay=k;
+  renderMeals();
+}
+function renderMeals(){
+  if(!DOM.mealList) return;
+  const plan=MEAL_PLANS[curMealDay];
+  DOM.mealList.innerHTML=plan.meals.map(m=>`
+    <div class="meal-card">
+      <div class="meal-head">
+        <span class="meal-time">${m.time}</span>
+        <span class="meal-kcal">${m.kcal} kcal</span>
+      </div>
+      <div class="meal-name">${m.name}</div>
+      ${m.alt?`<div class="meal-alt">${m.alt}</div>`:''}
+      <div class="macro-row">
+        <div class="macro"><div class="mv">${m.kcal}</div><div class="ml">kcal</div></div>
+        <div class="macro"><div class="mv">${m.pro}ก.</div><div class="ml">โปรตีน</div></div>
+      </div>
+    </div>`).join('');
 }
 
 // ── Render workout page ──
@@ -429,21 +463,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   document.addEventListener('keydown',e=>{if(e.key==='Escape')closeTimer();});
 
-  if(DOM.mealList) {
-    DOM.mealList.innerHTML=MEALS.map(m=>`
-      <div class="meal-card">
-        <div class="meal-head">
-          <span class="meal-time">${m.time}</span>
-          <span class="meal-kcal">${m.kcal} kcal</span>
-        </div>
-        <div class="meal-name">${m.name}</div>
-        ${m.alt?`<div class="meal-alt">${m.alt}</div>`:''}
-        <div class="macro-row">
-          <div class="macro"><div class="mv">${m.kcal}</div><div class="ml">kcal</div></div>
-          <div class="macro"><div class="mv">${m.pro}ก.</div><div class="ml">โปรตีน</div></div>
-        </div>
-      </div>`).join('');
-  }
+  buildMealTabs();
+  renderMeals();
 
   initPhysiqueGoal();
   renderWeek();
@@ -632,13 +653,12 @@ async function callGeminiAPI(prompt) {
 
 3. แผนโภชนาการ (Nutrition Plan):
 - พลังงาน: ~1,850 kcal/วัน (Caloric Deficit -500 kcal จากเกณฑ์ TDEE), โปรตีน 150-170 ก./วัน
-- ตารางมื้ออาหารประจำวัน:
-  * 07.00-08.00: ไข่ 3 ฟอง + ข้าวโอ๊ต 40 ก. + กล้วย 1 ลูก (โปรตีน ~28ก.)
-  * 10.30: กรีกโยเกิร์ตไม่หวาน 1 ถ้วย + อัลมอนด์ 15-20 เม็ด (โปรตีน ~17ก.)
-  * 12.00-13.00: ข้าวกล้อง 1 ทัพพี + อกไก่/ปลา 180 ก. + ผัก (โปรตีน ~45ก.)
-  * 18.30 (ก่อนเล่น): กล้วย 1 ลูก หรือ แอปเปิ้ล + กาแฟดำ
-  * 20.15-20.30 (หลังเล่น): อกไก่/ปลา/เต้าหู้ 200 ก. + ผักนึ่ง + ข้าวครึ่งทัพพี (โปรตีน ~48ก.)
-  * ก่อนนอน (ถ้าหิว): นมจืดพร่องมันเนย 1 แก้ว หรือ เวย์โปรตีน 1 สกู๊ป
+- แผนอาหารหมุนเวียน 5 วัน (จ–ศ) แต่ละวันมี 6 มื้อ ตัวอย่างเมนู:
+  * จันทร์ (คลาสสิก): ไข่ต้ม+ข้าวโอ๊ต / กรีกโยเกิร์ต+อัลมอนด์ / ข้าวกล้อง+อกไก่ย่าง / กล้วย+กาแฟ / อกไก่ต้ม+ผัก / เวย์/นม
+  * อังคาร (ไทยต้นตำรับ): ข้าวต้มปลา+ไข่ / ถั่วผสม / ต้มยำปลาน้ำใส+ข้าวกล้อง / แอปเปิล / เวย์+อกไก่+สลัด / กรีกโยเกิร์ต
+  * พุธ (ผักเยอะ): ไข่คนผัก+ขนมปังโฮลวีต / กล้วย+อัลมอนด์ / สลัดอกไก่+ไข่ต้ม / กรีกโยเกิร์ต+เบอร์รี / ต้มข่าไก่+ข้าวกล้อง / เวย์
+  * พฤหัส (โปรตีนสูง): โจ๊กไก่+ไข่ต้ม / เวย์+กล้วย / ส้มตำไก่ย่าง+ข้าวเหนียว / ผลไม้ / ปลาอบ+ผัก+ข้าวกล้อง / นม
+  * ศุกร์ (พิเศษ): สมูทตี้โปรตีน / ไข่ต้ม+แอปเปิล / ก๋วยเตี๋ยวต้มยำน้ำใส / กรีกโยเกิร์ต+เบอร์รี / สเต็กปลาแซลมอน+ผักอบ / อัลมอนด์
 - ของกินเล่นที่กินได้: ไข่ต้ม, กรีกโยเกิร์ต, เวย์, อัลมอนด์, เอดามาเมะ, ฝรั่ง/แอปเปิ้ล
 - ของที่ต้องหลีกเลี่ยง: ชานมไข่มุก, ขนมขบเคี้ยว, เบเกอรี่, ทุเรียน, เครื่องดื่มแอลกอฮอล์
 
